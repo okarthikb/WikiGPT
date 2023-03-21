@@ -15,7 +15,7 @@ def process(gpu, node, gpus, world_size):
   dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
   print(f'started process {rank}\n')
 
-  encoding = pickle.load(open('wikitext-103-tokens.pkl', 'rb'))
+  encoding = pickle.load(open('...', 'rb'))
   split_size = len(encoding) // world_size
   encoding = encoding[:split_size * world_size]
   split = torch.tensor(encoding[rank * split_size:rank * split_size + split_size])
