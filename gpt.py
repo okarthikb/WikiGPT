@@ -119,14 +119,12 @@ class GPT(nn.Module):
 class InvSqrtLR(_LRScheduler):
   def __init__(self, optimizer, max_lr, min_lr, warmup, steps):
     d = steps ** 0.5 - warmup ** 0.5
-    scale = (max_lr - min_lr) * (steps * warmup) ** 0.5 / d
-    shift = (min_lr * steps ** 0.5 - max_lr * warmup ** 0.5) / d
+    m = (max_lr - min_lr) * (steps * warmup) ** 0.5 / d
+    c = (min_lr * steps ** 0.5 - max_lr * warmup ** 0.5) / d
 
     self.cur_step = 0
     self.optimizer, self.steps = optimizer, steps
-    self.schedule = lambda x: min(
-      max_lr * x / warmup, scale * (1 / x) ** 0.5 + shift
-    )
+    self.schedule = lambda x: min(max_lr * x / warmup, m * (1 / x) ** 0.5 + c)
 
     super().__init__(optimizer) 
  
