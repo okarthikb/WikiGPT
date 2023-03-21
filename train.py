@@ -1,4 +1,4 @@
-import torch, os, pickle, random, wandb
+import torch, os, pickle, random, wandb, time
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributed as dist
@@ -21,17 +21,20 @@ def process(gpu, node, gpus, world_size):
   split = torch.tensor(encoding[rank * split_size:rank * split_size + split_size])
   
   d = 768
-  nh = 12
-  nl = 16
+  nh = 16
+  nl = 8
   l = 512
   v = 16384
   batch_size = 32
-  steps = 30000
-  lr = 1e-4
+  max_lr = 3e-4
+  min_lr = 5e-5
+  steps = 15000
+  warmup = 1500
 
   torch.manual_seed(69)
   gpt = GPT(d, nh, nl, l, v).cuda(rank)
-  optimizer = Lion(gpt.parameters(), lr)
+  optimizer = Lion(gpt.param_groups(), weight_decay=1e-2)
+  scheduler = InvSqrtLR(optimizer, max_lr, min_lr, warmup, steps)
 
   def generator():
     for _ in range(steps):
@@ -39,12 +42,12 @@ def process(gpu, node, gpus, world_size):
       yield torch.stack([split[i:i + l + 1] for i in indices]).cuda(rank)
 
   if rank == 0:
-    nparam = sum(p.numel() for p in gpt.parameters() if p.requires_grad)
-    print(f'{nparam} parameters\n')
+    print(f'{gpt.np} parameters\n')
     wandb.init(project='WikiGPT')
-    wandb.run.name = 'rank 0'
+    wandb.run.name = '...'
     print()
 
+  s = time.time()
   scaler = GradScaler()
   for step, batch in enumerate(generator(), 1):
     with autocast():
@@ -52,26 +55,26 @@ def process(gpu, node, gpus, world_size):
     
     if rank == 0:
       wandb.log({'loss': loss.item()})
-      if step % 50 == 0:
-        print(f'loss = {loss.item()}\tstep = {step}')
+      if step % 100 == 0:
+        print(f'loss = {loss.item()}\tstep = {step}\tt = {time.time() - s}s')
+        s = time.time()
     
     scaler.scale(loss).backward()
     
     for p in gpt.parameters():
       if p.requires_grad:
-        dist.reduce(tensor=p.grad.data, dst=0, op=dist.ReduceOp.SUM)
-        if rank == 0:
-          p.grad.data /= world_size
-        dist.broadcast(tensor=p.grad.data, src=0)
+        dist.all_reduce(tensor=p.grad.data, op=dist.ReduceOp.SUM)
+        p.grad.data /= world_size
  
     scaler.step(optimizer)
     scaler.update()
+    scheduler.step()
     optimizer.zero_grad()
 
   if rank == 0:
     print()
     wandb.finish()
-    torch.save(gpt.state_dict(), 'WikiGPT.pt')
+    torch.save(gpt.state_dict(), '...')
  
   dist.destroy_process_group()
 
@@ -87,5 +90,4 @@ if __name__ == '__main__':
   os.environ['MASTER_PORT'] = '6969'
 
   world_size = args.nodes * args.gpus
-  
   mp.spawn(process, args=(args.node, args.gpus, world_size), nprocs=world_size)
