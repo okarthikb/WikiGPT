@@ -125,7 +125,7 @@ class InvSqrtLR(_LRScheduler):
     self.cur_step = 0
     self.optimizer, self.steps = optimizer, steps
     self.schedule = lambda x: min(
-      lambda x: max_lr * x / warmup, lambda x: scale * (1 / x) ** 0.5 + shift
+      max_lr * x / warmup, scale * (1 / x) ** 0.5 + shift
     )
 
     super().__init__(optimizer) 
