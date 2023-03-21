@@ -52,7 +52,7 @@ class Layer(nn.Module):
     q, k, v = map(self.split, (self.pe(q), self.pe(k), v))
     A = F.softmax(einsum('bhic, bhjc -> bhij', q, k) * self.scale + m, -1)
     x = x + self.wo(rearrange(A @ v, 'b nh l dh -> b l (nh dh)'))
-    return x + self.ff(self.ffnorm(x)), m
+    return x + self.ff(self.ffnorm(x)), m  # , A
 
 
 class GPT(nn.Module):
@@ -106,9 +106,14 @@ class GPT(nn.Module):
     ]
 
   def forward(self, x):
-    _, l = x.shape 
+    _, l = x.shape
+    # As = []  # to visualize attention
+    # x, m = self.emb(x), self.m[:l, :l]
+    # for layer in self.layers:
+    #   x, m, A = layer((x, m))
+    #   As.append(A.detach().squeeze().cpu().numpy())
     x, _ = self.layers((self.emb(x), self.m[:l, :l]))
-    return self.out(x)
+    return self.out(x)  # , As
 
   def loss(self, x, y):
     return F.cross_entropy(
