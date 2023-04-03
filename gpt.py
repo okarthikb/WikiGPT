@@ -33,9 +33,10 @@ class RotaryEmbedding(nn.Module):
 
 
 class Layer(nn.Module):
-  def __init__(self, d, nh, pe=lambda x: x):
+  def __init__(self, d, nh, pe=lambda x: x, parallel=False):
     super().__init__()
     self.scale = d ** -0.5
+    self.parallel = parallel
     self.wx, self.wo = nn.Linear(d, 3 * d), nn.Linear(d, d) 
     self.mhanorm, self.ffnorm = RMSNorm(d), RMSNorm(d)
     self.pe = pe
@@ -51,12 +52,15 @@ class Layer(nn.Module):
     q, k, v = rearrange(self.wx(self.mhanorm(x)), 'b l (n d) -> n b l d', n=3)
     q, k, v = map(self.split, (self.pe(q), self.pe(k), v))
     A = F.softmax(einsum('bhic, bhjc -> bhij', q, k) * self.scale + m, -1)
-    x = x + self.wo(rearrange(A @ v, 'b nh l dh -> b l (nh dh)'))
+    head = rearrange(A @ v, 'b nh l dh -> b l (nh dh)')
+    if self.parallel:  # parallel attention from GPT-J
+      return x + self.ff(self.ffnorm(x)) + self.wo(head), m
+    x = x + self.wo(head)
     return x + self.ff(self.ffnorm(x)), m  # , A
 
 
 class GPT(nn.Module):
-  def __init__(self, d, nh, nl, l, v):
+  def __init__(self, d, nh, nl, l, v, parallel=False):
     super().__init__()
     self.l = l 
 
@@ -64,7 +68,9 @@ class GPT(nn.Module):
     self.out = nn.Linear(d, v, bias=False)
 
     self.rope = RotaryEmbedding(l, d)
-    self.layers = nn.Sequential(*[Layer(d, nh, self.rope) for _ in range(nl)])
+    self.layers = nn.Sequential(
+      *[Layer(d, nh, self.rope, parallel) for _ in range(nl)]
+    )
 
     m = torch.tril(torch.ones(l, l)) - 1
     m[m == -1] = float('-inf')
@@ -129,7 +135,7 @@ class InvSqrtLR(_LRScheduler):
 
     self.cur_step = 0
     self.optimizer, self.steps = optimizer, steps
-    self.schedule = lambda x: min(max_lr * x / warmup, m * (1 / x) ** 0.5 + c)
+    self.schedule = lambda x: min(max_lr * x / warmup, m / x ** 0.5 + c)
 
     super().__init__(optimizer) 
  
