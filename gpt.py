@@ -60,7 +60,7 @@ class Layer(nn.Module):
 
 
 class GPT(nn.Module):
-  def __init__(self, d, nh, nl, l, v, parallel=False):
+  def __init__(self, d, nh, nl, l, v, parallel=False, rev=False):
     super().__init__()
     self.l = l 
 
@@ -71,8 +71,11 @@ class GPT(nn.Module):
     self.layers = nn.Sequential(
       *[Layer(d, nh, self.rope, parallel) for _ in range(nl)]
     )
-
-    m = torch.tril(torch.ones(l, l)) - 1
+    
+    if rev:
+      m = torch.triu(torch.ones(l, l)) - 1
+    else:
+      m = torch.tril(torch.ones(l, l)) - 1
     m[m == -1] = float('-inf')
     self.m = nn.Parameter(m, requires_grad=False)
 
