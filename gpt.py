@@ -20,16 +20,16 @@ class RMSNorm(nn.Module):
 class RotaryEmbedding(nn.Module):
   def __init__(self, l, d):
     super().__init__()
-    θ = 1e4 ** (-repeat(torch.arange(0, d, 2), 'i -> (i j)', j=2) / d)
-    lθ = einsum('i, j -> ij', torch.arange(l), θ)
-    self.sin = nn.Parameter(lθ.sin(), requires_grad=False)
-    self.cos = nn.Parameter(lθ.cos(), requires_grad=False)
+    theta = 1e4 ** (-repeat(torch.arange(0, d, 2), 'i -> (i 2)') / d)
+    ltheta = einsum('i, j -> ij', torch.arange(l), theta)
+    self.sin = nn.Parameter(ltheta.sin(), requires_grad=False)
+    self.cos = nn.Parameter(ltheta.cos(), requires_grad=False)
 
   def forward(self, x):
     _, l, _ = x.shape
-    y2 = torch.cat((-x[..., 1::2, None], x[..., ::2, None]), -1)
-    y = rearrange(y2, '... x y -> ... (x y)')
-    return x * self.cos[:l] + y * self.sin[:l]
+    z = torch.cat((-x[..., 1::2, None], x[..., ::2, None]), -1)
+    x_rot = rearrange(z, '... x y -> ... (x y)')
+    return x * self.cos[:l] + x_rot * self.sin[:l]
 
 
 class Layer(nn.Module):
