@@ -83,7 +83,7 @@ There's no fine-tuning going on, all we have to do is scale `torch.arange(l)` by
 
 `[θ_1, θ_1, θ_2, θ_2, ..., θ_{d/2}]`
 
-where `d` is assumed to be even. Then we can consider `torch.arange(l)` which is simply
+where `d` is assumed to be even. Then we consider `torch.arange(l)` which is simply
 
 `[1, 2, ..., l]`
 
