@@ -105,7 +105,7 @@ So `ltheta` is same shape as `x` - `(seq_len, d_model)`. `x_rot` is just `x` wit
  [2l/2 * θ_1, 2l/2 * θ_1, ..., 2l/2 * θ_{d/2}, 2l/2 * θ_{d/2}]]
 ```
 
-Intuitively, the model has learned to map sections of a context to specific sections of `sin` and `cos` curves. Imagine dividing an arbitrary context into uniform chunks. Then no matter the context length, we want each chunk to be mapped to the same section of the trig curves. We do this by scaling down the frequency. A [paper](https://arxiv.org/pdf/2306.15595.pdf) laying out the exact trick came out _just_ recently and it has this helpful visualization of what's going on
+Intuitively, the model has learned to map sections of a context to specific sections of the `sin` and `cos` curves. Imagine dividing an arbitrary context into uniform chunks. Then no matter the context length, we want each chunk to be mapped to the same section of the trig curves. We do this by scaling down the frequencies. A [paper](https://arxiv.org/pdf/2306.15595.pdf) laying out the exact trick came out _just_ recently and it has this helpful visualization of what's going on
 
 <img width="738" alt="RoPE-explain" src="https://github.com/okarthikb/WikiGPT/assets/86470305/00a433b1-b12d-414d-b5cc-22dd2e085b25">
 
