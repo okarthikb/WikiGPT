@@ -21,7 +21,7 @@ class RotaryEmbedding(nn.Module):
   def __init__(self, l, d, scale=1):
     super().__init__()
     theta = 1e4 ** (-repeat(torch.arange(0, d, 2), 'i -> (i 2)') / d)
-    ltheta = einsum('i, j -> ij', torch.arange(l) * scale, theta)
+    ltheta = einsum('i, j -> ij', torch.arange(l) / scale, theta)
     self.sin = nn.Parameter(ltheta.sin(), requires_grad=False)
     self.cos = nn.Parameter(ltheta.cos(), requires_grad=False)
 
@@ -60,14 +60,14 @@ class Layer(nn.Module):
 
 
 class GPT(nn.Module):
-  def __init__(self, d, nh, nl, l, v, parallel=False, scale=1):
+  def __init__(self, d, nh, nl, l, v, parallel=False):
     super().__init__()
-    self.l = l 
+    self.l, self.d = l, d
 
     self.emb = nn.Embedding(v, d)
     self.out = nn.Linear(d, v, bias=False)
 
-    self.rope = RotaryEmbedding(l, d, scale)
+    self.rope = RotaryEmbedding(l, d)
     self.layers = nn.Sequential(
       *[Layer(d, nh, self.rope, parallel) for _ in range(nl)]
     )
