@@ -79,7 +79,7 @@ A few days ago 4chan anon kaiokendev made a two line edit in his RoPE implementa
 
 <img width="538" alt="RoPE-scale" src="https://github.com/okarthikb/WikiGPT/assets/86470305/d4999d5c-75b9-4b67-baa4-4e923bf7f8fc">
 
-There's no fine-tuning going on, all we have to do is scale `torch.arange(l)` by `scale`. What's happening? Here, `x` will be the query `q` or key `k` batch on which we apply RoPE. `x` will be of shape `(batch_size, seq_len, d_model)` - we only need to care about the last two dimensions (assume we're working with a single batch, which is what we do at test time). We first define a vector of `d` angle values like so
+There's no fine-tuning going on, all we have to do is scale `torch.arange(l)` by `scale`. What's happening? Here, `x` will be the query `q` or key `k` batch on which we apply RoPE. `x` will be of shape `(batch_size, seq_len, d_model)` - we only need to care about the last two dimensions (assume we're working with a single batch, which is what we do at test time). We first define a vector `theta` of `d` angle values like so
 
 `[θ_1, θ_1, θ_2, θ_2, ..., θ_{d/2}]`
 
