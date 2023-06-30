@@ -61,7 +61,7 @@
   </tr>
 </table>
 
-Few changes: [RMS norm](https://arxiv.org/abs/1910.07467) instead of layer norm, [RoPE](https://arxiv.org/abs/2104.09864) instead of learned position encoding, [SwiGLU](https://arxiv.org/abs/2002.05202v1), and [Lion](https://arxiv.org/abs/2302.06675) instead of Adam(W).
+Few changes: [RMS norm](https://arxiv.org/abs/1910.07467) instead of layer norm, [RoPE](https://arxiv.org/abs/2104.09864) instead of learned position encoding, [SwiGLU](https://arxiv.org/abs/2002.05202v1) instead of GELU, and [Lion](https://arxiv.org/abs/2302.06675) optimizer instead of Adam(W).
 
 <img width="1336" alt="Screenshot 2023-03-21 at 1 16 53 AM" src="https://user-images.githubusercontent.com/86470305/226524451-2930c367-4748-45d6-8f68-56f40f54f51d.png">
 
