@@ -96,7 +96,7 @@ where `l` is `seq_len`. `torch.einsum('i, j -> ij', torch.arange(l), theta)` is 
  [l * θ_1, l * θ_1, ..., l * θ_{d/2}, l * θ_{d/2}]]
 ```
 
-So `ltheta` is same shape as `x` - `(seq_len, d_model)`. `x_rot` is just `x` with alternating columns and even columns made negative. We apply `sin` and `cos` along each row of `ltheta`, and elementwise multiply the outputs with `x_rot` and `x` respectively. To double the context length, we scale down frequencies by 2
+So `ltheta` is same shape as `x` - `(seq_len, d_model)`. `x_rot` is just `x` with alternating columns and even columns made negative. We apply `sin` and `cos` along each row of `ltheta`, and elementwise multiply the outputs with `x_rot` and `x` respectively. To double the context length, we halve the frequencies
 
 ```
 [[1/2 * θ_1, 1/2 * θ_1, ..., 1/2 * θ_{d/2}, 1/2 * θ_{d/2}],
