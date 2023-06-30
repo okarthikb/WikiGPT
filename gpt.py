@@ -18,10 +18,10 @@ class RMSNorm(nn.Module):
 
 
 class RotaryEmbedding(nn.Module):
-  def __init__(self, l, d):
+  def __init__(self, l, d, scale=1):
     super().__init__()
     theta = 1e4 ** (-repeat(torch.arange(0, d, 2), 'i -> (i 2)') / d)
-    ltheta = einsum('i, j -> ij', torch.arange(l), theta)
+    ltheta = einsum('i, j -> ij', torch.arange(l) * scale, theta)
     self.sin = nn.Parameter(ltheta.sin(), requires_grad=False)
     self.cos = nn.Parameter(ltheta.cos(), requires_grad=False)
 
@@ -60,22 +60,19 @@ class Layer(nn.Module):
 
 
 class GPT(nn.Module):
-  def __init__(self, d, nh, nl, l, v, parallel=False, rev=False):
+  def __init__(self, d, nh, nl, l, v, parallel=False, scale=1):
     super().__init__()
     self.l = l 
 
     self.emb = nn.Embedding(v, d)
     self.out = nn.Linear(d, v, bias=False)
 
-    self.rope = RotaryEmbedding(l, d)
+    self.rope = RotaryEmbedding(l, d, scale)
     self.layers = nn.Sequential(
       *[Layer(d, nh, self.rope, parallel) for _ in range(nl)]
     )
     
-    if rev:
-      m = torch.triu(torch.ones(l, l)) - 1
-    else:
-      m = torch.tril(torch.ones(l, l)) - 1
+    m = torch.tril(torch.ones(l, l)) - 1
     m[m == -1] = float('-inf')
     self.m = nn.Parameter(m, requires_grad=False)
 
