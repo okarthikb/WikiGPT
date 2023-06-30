@@ -112,9 +112,6 @@ Intuitively, the model has learned to map sections of a context to specific sect
 If we have a trained model with context length `l`, we can make it work with longer context length `k * l` by doing
 
 ```python
-from gpt import *
-
-
 k = 2
 
 model = GPT(...)
@@ -124,6 +121,8 @@ model.load_state_dict(torch.load('trained_model.pt'))
 # update RoPE
 for layer in model.layers:
   layer.pe = RotaryEmbedding(k * model.l, model.d, scale=k)
+
+model.l *= k
 
 torch.save(model.state_dict(), 'extended_model.pt')
 ```
