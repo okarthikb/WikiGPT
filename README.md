@@ -65,7 +65,7 @@ Few changes: [RMS norm](https://arxiv.org/abs/1910.07467) instead of layer norm,
 
 ### Lion
 
-The difference between AdamW and Lion is as follows
+The difference between AdamW and Lion is as follows:
 
 <img width="866" alt="Lion" src="https://github.com/okarthikb/WikiGPT/assets/86470305/488c267e-a966-49db-bbe5-77cd669e6349">
 
@@ -75,7 +75,7 @@ Lion saves memory by only keeping track of the first moment (the EMA of gradient
 
 ### Scaled RoPE (update!)
 
-A few days ago 4chan anon kaiokendev made a two line edit in his RoPE implementation which appeared to [double the model's context length](https://kaiokendev.github.io/til#extending-context-to-8k) at test time. The equivalent edit in the implementation here would be
+A few days ago 4chan anon kaiokendev made a two line edit in his RoPE implementation which appeared to [double the model's context length](https://kaiokendev.github.io/til#extending-context-to-8k) at test time. The equivalent edit in the implementation here would be:
 
 <img width="538" alt="RoPE-scale" src="https://github.com/okarthikb/WikiGPT/assets/86470305/d4999d5c-75b9-4b67-baa4-4e923bf7f8fc">
 
