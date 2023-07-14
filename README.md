@@ -127,6 +127,8 @@ model.l *= k
 torch.save(model.state_dict(), 'extended_model.pt')
 ```
 
+(Update again: Jianlin Su's [explanation](https://kexue.fm/archives/9675))
+
 ### Attention visualization
 
 Attention scores visualized for 64 tokens in the middle of a completion:
